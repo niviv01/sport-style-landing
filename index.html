@@ -579,62 +579,124 @@
   // Valid Ukrainian mobile operator codes (2 digits after the leading 0)
   const validOperatorCodes = ['39','50','63','66','67','68','73','89','91','92','93','94','95','96','97','98','99'];
 
-  function formatPhone(digits){
-    // digits = up to 9 digits: OO (operator) + XXXXXXX (7 digits)
+  // Phone mask state: we fully control input via keydown, ignoring native text editing,
+  // so the displayed string and internal digit buffer never get out of sync.
+  let phoneDigits = ''; // up to 9 digits: 2-digit operator code + 7-digit number
+  let phoneCursor = 0;  // cursor position measured in digits (0..phoneDigits.length)
+
+  function renderPhone(digits){
     let out = '+38 (0';
     if(digits.length > 0) out += digits.slice(0,2);
     out += ')';
-    if(digits.length > 2){
-      out += ' ' + digits.slice(2,5);
-    }
-    if(digits.length > 5){
-      out += '-' + digits.slice(5,7);
-    }
-    if(digits.length > 7){
-      out += '-' + digits.slice(7,9);
-    }
+    if(digits.length > 2) out += ' ' + digits.slice(2,5);
+    if(digits.length > 5) out += '-' + digits.slice(5,7);
+    if(digits.length > 7) out += '-' + digits.slice(7,9);
     return out;
   }
 
-  function getPhoneDigits(value){
-    // Strip everything except digits
-    let raw = value.replace(/\D/g,'');
-    // Remove leading country/trunk codes the user might paste (380, 38, 0)
-    if(raw.startsWith('380')) raw = raw.slice(3);
-    else if(raw.startsWith('38')) raw = raw.slice(2);
-    if(raw.startsWith('0')) raw = raw.slice(1);
-    return raw.slice(0,9);
+  function caretPosForDigitIndex(idx){
+    return renderPhone(phoneDigits.slice(0, idx)).length;
+  }
+
+  function updatePhoneDisplay(){
+    phoneInput.value = renderPhone(phoneDigits);
+    const pos = caretPosForDigitIndex(phoneCursor);
+    phoneInput.setSelectionRange(pos, pos);
+    phoneInput.classList.remove('invalid');
+    phoneError.classList.remove('show');
   }
 
   phoneInput.addEventListener('focus', function(){
-    if(!phoneInput.value) phoneInput.value = '+38 (0';
-    // place cursor right after the leading 0
-    const pos = 6;
-    requestAnimationFrame(()=> phoneInput.setSelectionRange(pos,pos));
-  });
-
-  phoneInput.addEventListener('input', function(){
-    const digits = getPhoneDigits(phoneInput.value);
-    phoneInput.value = formatPhone(digits);
-    phoneInput.setSelectionRange(phoneInput.value.length, phoneInput.value.length);
-    phoneInput.classList.remove('invalid');
-    phoneError.classList.remove('show');
+    updatePhoneDisplay();
   });
 
   phoneInput.addEventListener('keydown', function(e){
-    // Prevent deleting the fixed "+38 (0" prefix
-    if((e.key === 'Backspace' || e.key === 'Delete') && phoneInput.selectionStart <= 6 && phoneInput.selectionEnd <= 6){
+    const key = e.key;
+
+    if(/^[0-9]$/.test(key)){
       e.preventDefault();
+      if(phoneDigits.length < 9){
+        phoneDigits = (phoneDigits.slice(0, phoneCursor) + key + phoneDigits.slice(phoneCursor)).slice(0, 9);
+        phoneCursor = Math.min(phoneCursor + 1, 9);
+        updatePhoneDisplay();
+      }
+      return;
     }
+    if(key === 'Backspace'){
+      e.preventDefault();
+      if(phoneCursor > 0){
+        phoneDigits = phoneDigits.slice(0, phoneCursor - 1) + phoneDigits.slice(phoneCursor);
+        phoneCursor--;
+        updatePhoneDisplay();
+      }
+      return;
+    }
+    if(key === 'Delete'){
+      e.preventDefault();
+      if(phoneCursor < phoneDigits.length){
+        phoneDigits = phoneDigits.slice(0, phoneCursor) + phoneDigits.slice(phoneCursor + 1);
+        updatePhoneDisplay();
+      }
+      return;
+    }
+    if(key === 'ArrowLeft'){
+      e.preventDefault();
+      if(phoneCursor > 0){ phoneCursor--; updatePhoneDisplay(); }
+      return;
+    }
+    if(key === 'ArrowRight'){
+      e.preventDefault();
+      if(phoneCursor < phoneDigits.length){ phoneCursor++; updatePhoneDisplay(); }
+      return;
+    }
+    if(key === 'Home'){
+      e.preventDefault();
+      phoneCursor = 0;
+      updatePhoneDisplay();
+      return;
+    }
+    if(key === 'End'){
+      e.preventDefault();
+      phoneCursor = phoneDigits.length;
+      updatePhoneDisplay();
+      return;
+    }
+    // Allow browser shortcuts (copy/paste/select-all), Tab navigation, function keys
+    if(key === 'Tab' || key.startsWith('F') || e.ctrlKey || e.metaKey){
+      return;
+    }
+    e.preventDefault();
+  });
+
+  phoneInput.addEventListener('paste', function(e){
+    e.preventDefault();
+    const text = (e.clipboardData || window.clipboardData).getData('text');
+    let raw = text.replace(/\D/g,'');
+    if(raw.startsWith('380')) raw = raw.slice(3);
+    else if(raw.startsWith('38')) raw = raw.slice(2);
+    if(raw.startsWith('0')) raw = raw.slice(1);
+    phoneDigits = raw.slice(0, 9);
+    phoneCursor = phoneDigits.length;
+    updatePhoneDisplay();
+  });
+
+  phoneInput.addEventListener('click', function(){
+    const clickPos = phoneInput.selectionStart;
+    let bestIdx = 0, bestDist = Infinity;
+    for(let i = 0; i <= phoneDigits.length; i++){
+      const dist = Math.abs(caretPosForDigitIndex(i) - clickPos);
+      if(dist < bestDist){ bestDist = dist; bestIdx = i; }
+    }
+    phoneCursor = bestIdx;
+    updatePhoneDisplay();
   });
 
   function validatePhone(){
-    const digits = getPhoneDigits(phoneInput.value);
-    if(digits.length !== 9){
+    if(phoneDigits.length !== 9){
       phoneError.textContent = 'Введите номер полностью: +38 (0XX) XXX-XX-XX';
       return false;
     }
-    const code = digits.slice(0,2);
+    const code = phoneDigits.slice(0,2);
     if(!validOperatorCodes.includes(code)){
       phoneError.textContent = 'Код оператора не распознан — проверьте номер';
       return false;
