@@ -691,6 +691,19 @@
     updatePhoneDisplay();
   });
 
+  // Safety net for mobile virtual keyboards / IME input that can bypass the keydown
+  // handling above (common on Android). Whatever slips through, this strips
+  // everything except digits and re-renders a clean, correctly formatted value.
+  phoneInput.addEventListener('input', function(){
+    let raw = phoneInput.value.replace(/\D/g,'');
+    if(raw.startsWith('380')) raw = raw.slice(3);
+    else if(raw.startsWith('38')) raw = raw.slice(2);
+    if(raw.startsWith('0')) raw = raw.slice(1);
+    phoneDigits = raw.slice(0,9);
+    phoneCursor = phoneDigits.length;
+    updatePhoneDisplay();
+  });
+
   function validatePhone(){
     if(phoneDigits.length !== 9){
       phoneError.textContent = 'Введите номер полностью: +38 (0XX) XXX-XX-XX';
