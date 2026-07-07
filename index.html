@@ -332,7 +332,7 @@
     <div class="logo">SPORT<span>STYLE</span></div>
     <div class="header-actions">
       <a class="header-phone" href="tel:+380634274697">+380 (63) 427-46-97</a>
-      <button id="langToggle" class="btn btn-ghost" type="button" style="padding:9px 14px;font-size:13px;">UA</button>
+      <button id="langToggle" class="btn btn-ghost" type="button" style="padding:9px 14px;font-size:13px;">RU</button>
       <a class="btn btn-primary" href="#order" style="padding:11px 20px;font-size:14px;" data-ua="Замовити дзвінок">Заказать звонок</a>
     </div>
   </div>
@@ -343,7 +343,7 @@
   <div class="wrap hero-inner">
     <div class="eyebrow" data-ua="Ринок «Північний» · Одеса">Рынок «Северный» · Одесса</div>
     <h1><span data-ua="Спортивні костюми ">Спортивные костюмы </span><span class="hl" data-ua="за доступними цінами">по доступным ценам</span></h1>
-    <p data-ua="Великий вибір моделей і розмірів, щільні тканини, які не розтягуються і не линяють, та можливість приміряти костюм прямо на місці — без передоплат і обміну «на око».">Большой выбор моделей и размеров, плотные ткани, которые не тянутся и не линяют, и возможность примерить костюм прямо на месте — без предоплат и обмена «на глаз».</p>
+    <p data-ua="Великий вибір моделей і розмірів, щільні тканини, які не розтягуються і не линяють, та можливість приміряти костюм прямо на місці — без передоплат і ризику помилитися з розміром.">Большой выбор моделей и размеров, плотные ткани, которые не тянутся и не линяют, и возможность примерить костюм прямо на месте — без предоплат и риска ошибиться с размером.</p>
     <div class="hero-ctas">
       <a class="btn btn-primary" href="#order" data-ua="Замовити дзвінок">Заказать звонок</a>
       <a class="btn btn-ghost" href="#catalog" data-ua="Дивитися каталог">Смотреть каталог</a>
@@ -790,7 +790,7 @@
         }
         el.setAttribute('placeholder', lang === 'ua' ? el.getAttribute('data-ua-placeholder') : el.getAttribute('data-ru-placeholder-orig'));
       });
-      if (toggleBtn) toggleBtn.textContent = lang === 'ua' ? 'RU' : 'UA';
+      if (toggleBtn) toggleBtn.textContent = lang === 'ua' ? 'UA' : 'RU';
       document.title = lang === 'ua' ? titleUa : titleRu;
       if (descEl) descEl.setAttribute('content', lang === 'ua' ? descUa : descRu);
       htmlEl.setAttribute('lang', lang === 'ua' ? 'uk' : 'ru');
