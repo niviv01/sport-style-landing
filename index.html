@@ -316,6 +316,36 @@
   }
   .float-call svg{width:18px;height:18px;stroke:white;}
 
+  /* ===== Floating "ask a question" button ===== */
+  .float-ask-wrap{position:fixed;bottom:82px;right:18px;z-index:60;}
+  .float-ask{
+    background:var(--ink);color:white;
+    border-radius:999px;padding:14px 20px;
+    display:flex;align-items:center;gap:8px;
+    font-weight:700;font-size:14px;
+    box-shadow:0 10px 24px rgba(0,0,0,0.22);
+    border:none;cursor:pointer;font-family:inherit;
+  }
+  .float-ask svg{width:18px;height:18px;stroke:white;}
+  .float-ask-menu{
+    position:absolute;bottom:64px;right:0;
+    background:white;border-radius:16px;padding:10px;
+    box-shadow:0 14px 30px rgba(0,0,0,0.18);
+    display:none;flex-direction:column;gap:8px;min-width:190px;
+  }
+  .float-ask-menu.open{display:flex;}
+  .float-ask-menu a{
+    display:flex;align-items:center;gap:10px;
+    padding:9px 10px;border-radius:10px;
+    font-size:14px;font-weight:600;color:var(--ink);text-decoration:none;
+  }
+  .float-ask-menu a:hover{background:var(--paper-alt,#F5F4F1);}
+  .float-ask-menu a span.dot{
+    width:34px;height:34px;border-radius:50%;flex:none;
+    display:flex;align-items:center;justify-content:center;
+  }
+  .float-ask-menu a span.dot svg{width:17px;height:17px;stroke:white;}
+
   /* ===== Reveal animation ===== */
   .reveal{opacity:0;transform:translateY(18px);transition:opacity .6s ease, transform .6s ease;}
   .reveal.in{opacity:1;transform:translateY(0);}
@@ -560,6 +590,27 @@
   <span data-ua="Дзвінок">Звонок</span>
 </a>
 
+<div class="float-ask-wrap">
+  <div class="float-ask-menu" id="askMenu">
+    <a href="https://t.me/+380634274697" target="_blank">
+      <span class="dot" style="background:#29A9EA;"><svg viewBox="0 0 24 24" fill="none" stroke-width="2"><path d="M22 2L11 13M22 2l-7 20-4-9-9-4 20-7z"/></svg></span>
+      Telegram
+    </a>
+    <a href="viber://chat?number=%2B380634274697" target="_blank">
+      <span class="dot" style="background:#7360F2;"><svg viewBox="0 0 24 24" fill="none" stroke-width="2"><path d="M12 2C6.5 2 2 5.8 2 10.5c0 2.7 1.5 5.1 3.8 6.7-.1.9-.5 2.5-1.3 3.8 1.6-.2 3.3-1 4.5-1.8.9.2 1.9.3 3 .3 5.5 0 10-3.8 10-8.5S17.5 2 12 2z"/><path d="M9 9.5s.5-1 1.5-1 1.5.5 1.5 1-.5 1-.5 1.5 1.5 2 2 2.5 1-.5 1.5-.5 1 .5 1 1.5-1.5 1.5-2 1.5c-2 0-5-3-5-5 0-.5 0-1.5.5-2z"/></svg></span>
+      Viber
+    </a>
+    <a href="https://wa.me/380634274697" target="_blank">
+      <span class="dot" style="background:#25D366;"><svg viewBox="0 0 24 24" fill="none" stroke-width="2"><path d="M21 11.5a8.38 8.38 0 01-.9 3.8 8.5 8.5 0 01-7.6 4.7 8.38 8.38 0 01-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 01-.9-3.8 8.5 8.5 0 014.7-7.6 8.38 8.38 0 013.8-.9h.5a8.48 8.48 0 018 8v.5z"/></svg></span>
+      WhatsApp
+    </a>
+  </div>
+  <button class="float-ask" id="askBtn" type="button">
+    <svg viewBox="0 0 24 24" fill="none" stroke-width="2"><path d="M21 11.5a8.38 8.38 0 01-.9 3.8 8.5 8.5 0 01-7.6 4.7 8.38 8.38 0 01-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 01-.9-3.8 8.5 8.5 0 014.7-7.6 8.38 8.38 0 013.8-.9h.5a8.48 8.48 0 018 8v.5z"/></svg>
+    <span data-ua="Є питання?">Есть вопрос?</span>
+  </button>
+</div>
+
 <script>
   // Scroll reveal
   const reveals = document.querySelectorAll('.reveal');
@@ -761,10 +812,30 @@
   // Hide floating call button once the order form is in view
   const orderSection = document.getElementById('order');
   const floatCall = document.getElementById('floatCall');
+  const floatAskWrap = document.querySelector('.float-ask-wrap');
   const io2 = new IntersectionObserver((entries)=>{
-    entries.forEach(e=>{ floatCall.style.display = e.isIntersecting ? 'none' : 'flex'; });
+    entries.forEach(e=>{
+      floatCall.style.display = e.isIntersecting ? 'none' : 'flex';
+      if(floatAskWrap) floatAskWrap.style.display = e.isIntersecting ? 'none' : 'block';
+    });
   },{threshold:0.2});
   io2.observe(orderSection);
+
+  // "Есть вопрос?" floating menu
+  (function(){
+    const askBtn = document.getElementById('askBtn');
+    const askMenu = document.getElementById('askMenu');
+    if(!askBtn || !askMenu) return;
+    askBtn.addEventListener('click', function(e){
+      e.stopPropagation();
+      askMenu.classList.toggle('open');
+    });
+    document.addEventListener('click', function(e){
+      if(!askMenu.contains(e.target) && e.target !== askBtn){
+        askMenu.classList.remove('open');
+      }
+    });
+  })();
 
   // ===== RU / UA language toggle =====
   (function(){
